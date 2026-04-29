@@ -1,4 +1,4 @@
-use z_ai_quota_menubar::quota::{menu_bar_title, parse_quota_snapshot, quota_left_label};
+use z_ai_quota_menubar::quota::{menu_bar_text, parse_quota_snapshot, quota_left_label};
 
 const SAMPLE: &str = r#"{
   "code": 200,
@@ -39,7 +39,7 @@ fn parses_time_and_token_left_from_sample() {
 
     assert_eq!(snapshot.time_left_percent, Some(0));
     assert_eq!(snapshot.token_left_percent, Some(65));
-    assert_eq!(menu_bar_title(Some(&snapshot)), "Z.ai 65%");
+    assert_eq!(menu_bar_text(Some(&snapshot)), "65%");
     assert_eq!(quota_left_label(snapshot.time_left_percent), "0% left");
     assert_eq!(quota_left_label(snapshot.token_left_percent), "65% left");
 }
@@ -64,7 +64,7 @@ fn missing_limits_render_as_unknown() {
 
     assert_eq!(snapshot.time_left_percent, None);
     assert_eq!(snapshot.token_left_percent, None);
-    assert_eq!(menu_bar_title(Some(&snapshot)), "Z.ai --%");
+    assert_eq!(menu_bar_text(Some(&snapshot)), "--%");
     assert_eq!(quota_left_label(snapshot.time_left_percent), "--% left");
 }
 

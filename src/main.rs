@@ -1,19 +1,19 @@
 #![allow(deprecated, unexpected_cfgs, unsafe_op_in_unsafe_fn)]
 
-use std::ptr;
+use std::{path::PathBuf, ptr};
 
 use cocoa::appkit::{
     NSApp, NSApplication, NSApplicationActivationPolicyAccessory, NSControl, NSMenu, NSMenuItem,
     NSStatusBar, NSStatusItem, NSTextField, NSVariableStatusItemLength, NSWindow,
 };
-use cocoa::base::{id, nil, NO, YES};
+use cocoa::base::{NO, YES, id, nil};
 use cocoa::foundation::{NSAutoreleasePool, NSPoint, NSRect, NSSize, NSString};
 use objc::declare::ClassDecl;
 use objc::runtime::{Object, Sel};
 use objc::{class, msg_send, sel, sel_impl};
 use z_ai_quota_menubar::client::fetch_quota;
 use z_ai_quota_menubar::keychain::{read_api_key, write_api_key};
-use z_ai_quota_menubar::quota::{menu_bar_title, quota_left_label, QuotaSnapshot};
+use z_ai_quota_menubar::quota::{QuotaSnapshot, menu_bar_text, quota_left_label};
 
 struct AppState {
     status_item: id,
@@ -33,8 +33,8 @@ fn main() {
 
         let target = new_target();
         install_edit_menu(target);
-        let status_item = NSStatusBar::systemStatusBar(nil)
-            .statusItemWithLength_(NSVariableStatusItemLength);
+        let status_item =
+            NSStatusBar::systemStatusBar(nil).statusItemWithLength_(NSVariableStatusItemLength);
         let menu = NSMenu::new(nil).autorelease();
 
         let state = Box::new(AppState {
@@ -88,8 +88,14 @@ extern "C" fn noop(_: &Object, _: Sel, _: id) {}
 unsafe fn new_target() -> id {
     let superclass = class!(NSObject);
     let mut decl = ClassDecl::new("ZaiMenuTarget", superclass).expect("class registered once");
-    decl.add_method(sel!(refreshNow:), refresh_now as extern "C" fn(&Object, Sel, id));
-    decl.add_method(sel!(setApiKey:), set_api_key as extern "C" fn(&Object, Sel, id));
+    decl.add_method(
+        sel!(refreshNow:),
+        refresh_now as extern "C" fn(&Object, Sel, id),
+    );
+    decl.add_method(
+        sel!(setApiKey:),
+        set_api_key as extern "C" fn(&Object, Sel, id),
+    );
     decl.add_method(sel!(quitApp:), quit_app as extern "C" fn(&Object, Sel, id));
     decl.add_method(sel!(noop:), noop as extern "C" fn(&Object, Sel, id));
     let class = decl.register();
@@ -141,19 +147,39 @@ unsafe fn rebuild_menu() {
     let state = &mut *APP_STATE;
     let _: () = msg_send![state.menu, removeAllItems];
 
-    let title = NSString::alloc(nil).init_str(&menu_bar_title(state.last_snapshot.as_ref()));
-    state.status_item.button().setTitle_(title);
+    let title =
+        NSString::alloc(nil).init_str(&format!(" {}", menu_bar_text(state.last_snapshot.as_ref())));
+    let button = state.status_item.button();
+    button.setTitle_(title);
+    if let Some(logo_path) = bundled_logo_path() {
+        let image: id = msg_send![class!(NSImage), alloc];
+        let image: id = msg_send![
+            image,
+            initWithContentsOfFile:NSString::alloc(nil).init_str(&logo_path.to_string_lossy())
+        ];
+        if image != nil {
+            let _: () = msg_send![image, setSize:NSSize::new(18.0, 18.0)];
+            let _: () = msg_send![button, setImage:image];
+            let _: () = msg_send![button, setImagePosition:2_u64];
+        }
+    }
     state.status_item.setMenu_(state.menu);
 
     if read_api_key().is_some() {
         if let Some(snapshot) = &state.last_snapshot {
             add_disabled_item(
                 state.menu,
-                &format!("Time quota: {}", quota_left_label(snapshot.time_left_percent)),
+                &format!(
+                    "Time quota: {}",
+                    quota_left_label(snapshot.time_left_percent)
+                ),
             );
             add_disabled_item(
                 state.menu,
-                &format!("Token quota: {}", quota_left_label(snapshot.token_left_percent)),
+                &format!(
+                    "Token quota: {}",
+                    quota_left_label(snapshot.token_left_percent)
+                ),
             );
             add_disabled_item(
                 state.menu,
@@ -284,4 +310,10 @@ fn concise_error(error: &str) -> String {
     } else {
         first_line.to_string()
     }
+}
+
+fn bundled_logo_path() -> Option<PathBuf> {
+    let exe = std::env::current_exe().ok()?;
+    let contents = exe.parent()?.parent()?;
+    Some(contents.join("Resources").join("z-ai-logo.svg"))
 }

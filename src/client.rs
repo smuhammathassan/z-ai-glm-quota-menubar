@@ -1,6 +1,6 @@
 use std::process::Command;
 
-use crate::quota::{parse_quota_snapshot, QuotaSnapshot};
+use crate::quota::{QuotaSnapshot, parse_quota_snapshot};
 
 const QUOTA_URL: &str = "https://api.z.ai/api/monitor/usage/quota/limit";
 

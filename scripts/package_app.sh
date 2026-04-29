@@ -5,12 +5,15 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 APP="$ROOT/dist/Z.ai Quota.app"
 CONTENTS="$APP/Contents"
 MACOS="$CONTENTS/MacOS"
+RESOURCES="$CONTENTS/Resources"
 
 cargo build --release --manifest-path "$ROOT/Cargo.toml"
 
 rm -rf "$APP"
 mkdir -p "$MACOS"
+mkdir -p "$RESOURCES"
 cp "$ROOT/target/release/z-ai-quota-menubar" "$MACOS/Z.ai Quota"
+cp "$ROOT/assets/z-ai-logo.svg" "$RESOURCES/z-ai-logo.svg"
 
 cat > "$CONTENTS/Info.plist" <<'PLIST'
 <?xml version="1.0" encoding="UTF-8"?>

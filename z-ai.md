@@ -7,7 +7,7 @@ Build a minimal macOS menu bar app that displays Z.ai / GLM quota left and reset
 Menu bar:
 
 ```text
-Z.ai 65%
+<Z.ai logo> 65%
 ```
 
 Dropdown:

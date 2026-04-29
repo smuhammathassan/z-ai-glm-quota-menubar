@@ -7,7 +7,7 @@ The app is intentionally small: it shows one status item, a short dropdown, and 
 ![Z.ai / GLM Quota Menubar screenshot](assets/menu-screenshot.png)
 
 ```text
-Menu bar: Z.ai 65%
+Menu bar: <Z.ai logo> 65%
 
 Dropdown:
 Time quota: 0% left
@@ -94,10 +94,10 @@ The packaging script creates `dist/Z.ai Quota.app` and ad-hoc signs it for local
 4. Paste the full Z.ai API key and click `Save`.
 5. Use `Refresh now` to update manually.
 
-The title uses token quota left as the primary value:
+The title uses the Z.ai logo plus token quota left as the primary value:
 
 ```text
-Z.ai 65%
+<Z.ai logo> 65%
 ```
 
 ## Development
@@ -142,3 +142,5 @@ This project should stay boring and small:
 ## License
 
 MIT
+
+Z.ai and GLM names and the bundled Z.ai logo are trademarks or assets of their respective owners. This project is an unofficial community tool.

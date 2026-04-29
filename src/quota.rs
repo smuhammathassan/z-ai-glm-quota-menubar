@@ -59,10 +59,10 @@ pub fn parse_quota_snapshot(json: &str) -> Result<QuotaSnapshot, String> {
     Ok(snapshot)
 }
 
-pub fn menu_bar_title(snapshot: Option<&QuotaSnapshot>) -> String {
+pub fn menu_bar_text(snapshot: Option<&QuotaSnapshot>) -> String {
     match snapshot.and_then(|s| s.token_left_percent) {
-        Some(left) => format!("Z.ai {left}%"),
-        None => "Z.ai --%".to_string(),
+        Some(left) => format!("{left}%"),
+        None => "--%".to_string(),
     }
 }
 
