@@ -13,9 +13,9 @@ Menu bar:
 Dropdown:
 
 ```text
-Time quota: 0% left
+Zread quota: 0% left
 Token quota: 65% left
-Time reset: May 7, 13:13
+Zread reset: May 7, 13:13
 Token reset: Apr 29, 10:56
 Refresh now
 Set API key
@@ -69,7 +69,7 @@ Record the measured RSS here before claiming the sub-10 MB target is met.
 
 ## Memory Measurements
 
-The project goal is a tiny package and idle RAM as close to 10 MB as practical. The package goal is met; the strict sub-10 MB RSS goal is not met by the current AppKit build.
+The project goal is a tiny package and idle RAM as close to 10 MB as practical. The package goal is met. Activity Monitor and `ps` RSS include shared AppKit/Foundation framework residency, so `vmmap` physical footprint is the better audit number for app-owned memory pressure.
 
 Initial launch measurement:
 
@@ -98,6 +98,19 @@ PID 75357, RSS 13952 KB
 ```
 
 The current AppKit build does not meet the sub-10 MB RSS target. The remaining memory appears to be dominated by the macOS AppKit status item runtime rather than the Rust quota parser or HTTP path.
+
+After replacing SVG decoding with one cached PNG logo:
+
+```text
+Bundle size: 680 KB
+Launch RSS: 70144 KB
+1-minute RSS: 65360 KB
+5-minute RSS: 32528 KB
+vmmap physical footprint: 10.5 MB
+vmmap malloc zones resident: 4896 KB
+```
+
+Audit conclusion: the high Activity Monitor number is mostly framework residency/accounting. The app's heap remains small; the user-visible memory number cannot reliably be pushed below 10 MB while using AppKit for a native menu bar app.
 
 ## Open Source Publishing Checklist
 

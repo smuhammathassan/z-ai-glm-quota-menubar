@@ -19,6 +19,7 @@ struct AppState {
     status_item: id,
     menu: id,
     target: id,
+    logo_image: id,
     last_snapshot: Option<QuotaSnapshot>,
     last_error: Option<String>,
 }
@@ -36,11 +37,13 @@ fn main() {
         let status_item =
             NSStatusBar::systemStatusBar(nil).statusItemWithLength_(NSVariableStatusItemLength);
         let menu = NSMenu::new(nil).autorelease();
+        let logo_image = load_logo_image();
 
         let state = Box::new(AppState {
             status_item,
             menu,
             target,
+            logo_image,
             last_snapshot: None,
             last_error: None,
         });
@@ -151,17 +154,9 @@ unsafe fn rebuild_menu() {
         NSString::alloc(nil).init_str(&format!(" {}", menu_bar_text(state.last_snapshot.as_ref())));
     let button = state.status_item.button();
     button.setTitle_(title);
-    if let Some(logo_path) = bundled_logo_path() {
-        let image: id = msg_send![class!(NSImage), alloc];
-        let image: id = msg_send![
-            image,
-            initWithContentsOfFile:NSString::alloc(nil).init_str(&logo_path.to_string_lossy())
-        ];
-        if image != nil {
-            let _: () = msg_send![image, setSize:NSSize::new(18.0, 18.0)];
-            let _: () = msg_send![button, setImage:image];
-            let _: () = msg_send![button, setImagePosition:2_u64];
-        }
+    if state.logo_image != nil {
+        let _: () = msg_send![button, setImage:state.logo_image];
+        let _: () = msg_send![button, setImagePosition:2_u64];
     }
     state.status_item.setMenu_(state.menu);
 
@@ -170,7 +165,7 @@ unsafe fn rebuild_menu() {
             add_disabled_item(
                 state.menu,
                 &format!(
-                    "Time quota: {}",
+                    "Zread quota: {}",
                     quota_left_label(snapshot.time_left_percent)
                 ),
             );
@@ -184,7 +179,7 @@ unsafe fn rebuild_menu() {
             add_disabled_item(
                 state.menu,
                 &format!(
-                    "Time reset: {}",
+                    "Zread reset: {}",
                     snapshot.time_reset.as_deref().unwrap_or("--")
                 ),
             );
@@ -196,9 +191,9 @@ unsafe fn rebuild_menu() {
                 ),
             );
         } else {
-            add_disabled_item(state.menu, "Time quota: --% left");
+            add_disabled_item(state.menu, "Zread quota: --% left");
             add_disabled_item(state.menu, "Token quota: --% left");
-            add_disabled_item(state.menu, "Time reset: --");
+            add_disabled_item(state.menu, "Zread reset: --");
             add_disabled_item(state.menu, "Token reset: --");
         }
 
@@ -215,31 +210,37 @@ unsafe fn rebuild_menu() {
 }
 
 unsafe fn add_disabled_item(menu: id, title: &str) {
-    let item = NSMenuItem::alloc(nil).initWithTitle_action_keyEquivalent_(
-        NSString::alloc(nil).init_str(title),
-        sel!(noop:),
-        NSString::alloc(nil).init_str(""),
-    );
+    let item = NSMenuItem::alloc(nil)
+        .initWithTitle_action_keyEquivalent_(
+            NSString::alloc(nil).init_str(title),
+            sel!(noop:),
+            NSString::alloc(nil).init_str(""),
+        )
+        .autorelease();
     item.setEnabled_(NO);
     menu.addItem_(item);
 }
 
 unsafe fn add_action_item(menu: id, title: &str, action: Sel, target: id) {
-    let item = NSMenuItem::alloc(nil).initWithTitle_action_keyEquivalent_(
-        NSString::alloc(nil).init_str(title),
-        action,
-        NSString::alloc(nil).init_str(""),
-    );
+    let item = NSMenuItem::alloc(nil)
+        .initWithTitle_action_keyEquivalent_(
+            NSString::alloc(nil).init_str(title),
+            action,
+            NSString::alloc(nil).init_str(""),
+        )
+        .autorelease();
     item.setTarget_(target);
     menu.addItem_(item);
 }
 
 unsafe fn add_menu_command(menu: id, title: &str, action: Sel, key: &str) {
-    let item = NSMenuItem::alloc(nil).initWithTitle_action_keyEquivalent_(
-        NSString::alloc(nil).init_str(title),
-        action,
-        NSString::alloc(nil).init_str(key),
-    );
+    let item = NSMenuItem::alloc(nil)
+        .initWithTitle_action_keyEquivalent_(
+            NSString::alloc(nil).init_str(title),
+            action,
+            NSString::alloc(nil).init_str(key),
+        )
+        .autorelease();
     menu.addItem_(item);
 }
 
@@ -312,8 +313,31 @@ fn concise_error(error: &str) -> String {
     }
 }
 
+unsafe fn load_logo_image() -> id {
+    let Some(logo_path) = bundled_logo_path() else {
+        return nil;
+    };
+    let image: id = msg_send![class!(NSImage), alloc];
+    let image: id = msg_send![
+        image,
+        initWithContentsOfFile:NSString::alloc(nil).init_str(&logo_path.to_string_lossy())
+    ];
+    if image != nil {
+        let _: () = msg_send![image, setSize:NSSize::new(18.0, 18.0)];
+    }
+    image
+}
+
 fn bundled_logo_path() -> Option<PathBuf> {
     let exe = std::env::current_exe().ok()?;
     let contents = exe.parent()?.parent()?;
-    Some(contents.join("Resources").join("z-ai-logo.svg"))
+    let bundled = contents.join("Resources").join("z-ai-logo.png");
+    if bundled.exists() {
+        return Some(bundled);
+    }
+    let local = std::env::current_dir()
+        .ok()?
+        .join("assets")
+        .join("z-ai-logo.png");
+    local.exists().then_some(local)
 }

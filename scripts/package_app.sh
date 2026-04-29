@@ -13,7 +13,7 @@ rm -rf "$APP"
 mkdir -p "$MACOS"
 mkdir -p "$RESOURCES"
 cp "$ROOT/target/release/z-ai-quota-menubar" "$MACOS/Z.ai Quota"
-cp "$ROOT/assets/z-ai-logo.svg" "$RESOURCES/z-ai-logo.svg"
+cp "$ROOT/assets/z-ai-logo.png" "$RESOURCES/z-ai-logo.png"
 
 cat > "$CONTENTS/Info.plist" <<'PLIST'
 <?xml version="1.0" encoding="UTF-8"?>

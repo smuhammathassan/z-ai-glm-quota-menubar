@@ -10,9 +10,9 @@ The app is intentionally small: it shows one status item, a short dropdown, and 
 Menu bar: <Z.ai logo> 65%
 
 Dropdown:
-Time quota: 0% left
+Zread quota: 0% left
 Token quota: 65% left
-Time reset: May 7, 13:13
+Zread reset: May 7, 13:13
 Token reset: Apr 29, 10:56
 Refresh now
 Set API key
@@ -35,11 +35,11 @@ Current local measurements:
 
 | Metric | Result |
 | --- | ---: |
-| `.app` bundle size | about 660 KB |
-| Launch RSS | about 40 MB |
-| Settled RSS after 5 minutes | 11.8-13.9 MB |
+| `.app` bundle size | about 680 KB |
+| Activity Monitor / RSS after 5 minutes | about 32.5 MB |
+| `vmmap` physical footprint | about 10.5 MB |
 
-The app bundle is comfortably below 1 MB. The sub-10 MB RAM target is not yet met in the measured AppKit build; the remaining RSS appears to come mostly from the macOS AppKit status item runtime rather than the quota parser or network code.
+The app bundle is comfortably below 1 MB. Activity Monitor and `ps` RSS include shared AppKit/Foundation framework pages, so they can look much higher than the app's own heap. In the latest audit, `vmmap` reported a 10.5 MB physical footprint and about 4.9 MB in malloc zones.
 
 ## API Status
 
