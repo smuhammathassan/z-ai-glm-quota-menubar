@@ -61,6 +61,21 @@ Because this endpoint is not officially documented by Z.ai, it may change or sto
 
 If you paste an API key into an issue, chat, log, screenshot, or commit by mistake, rotate it immediately.
 
+## Install
+
+Requirements:
+
+- macOS
+
+Download and install the latest release:
+
+```bash
+curl -L -o Z.ai.Quota.app.zip https://github.com/smuhammathassan/z-ai-glm-quota-menubar/releases/latest/download/Z.ai.Quota.app.zip
+unzip Z.ai.Quota.app.zip
+cp -R "Z.ai Quota.app" /Applications/
+open "/Applications/Z.ai Quota.app"
+```
+
 ## Install From Source
 
 Requirements:
